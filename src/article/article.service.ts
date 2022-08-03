@@ -17,13 +17,17 @@ export class ArticleService {
   async createArticle(
     currrentUser: UserEntity,
     createArticleDto: CreateArticleDto,
-  ) {
+  ): Promise<ArticleEntity> {
     const article = new ArticleEntity();
     Object.assign(article, createArticleDto);
     article.tagList = article.tagList ?? [];
     article.slug = this.getSlug(createArticleDto.title);
     article.author = currrentUser;
     return await this.articleRepository.save(article);
+  }
+
+  async findBySlug(slug: string) {
+    return await this.articleRepository.findOne({ where: { slug } });
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
