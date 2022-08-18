@@ -1,7 +1,11 @@
 import { UserEntity } from '@app/user/user.entity';
-import { Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository } from 'typeorm';
 import { ArticleEntity } from './article.entity';
 import { CreateArticleDto } from './dto/createArticle.dto';
 import { ArticleResponseInterface } from './types/articleResponse.interface';
@@ -28,6 +32,25 @@ export class ArticleService {
 
   async findBySlug(slug: string) {
     return await this.articleRepository.findOne({ where: { slug } });
+  }
+
+  async deleteArticle(
+    currentUserId: number,
+    slug: string,
+  ): Promise<DeleteResult> {
+    const article = await this.findBySlug(slug);
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    if (article.author.id !== currentUserId) {
+      throw new ForbiddenException("You aren't the author of this article");
+    }
+
+    return await this.articleRepository.delete({
+      slug,
+    });
   }
 
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
