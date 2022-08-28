@@ -53,6 +53,24 @@ export class ArticleService {
     });
   }
 
+  async updateArticle(
+    slug: string,
+    updateArticleDto: CreateArticleDto,
+    currentUserId: number,
+  ) {
+    const article = await this.findBySlug(slug);
+
+    if (!article) {
+      throw new NotFoundException('Article not found');
+    }
+
+    if (article.author.id !== currentUserId) {
+      throw new ForbiddenException("You aren't the author of this article");
+    }
+    Object.assign(article, updateArticleDto);
+    return await this.articleRepository.save(article);
+  }
+
   buildArticleResponse(article: ArticleEntity): ArticleResponseInterface {
     return { article };
   }

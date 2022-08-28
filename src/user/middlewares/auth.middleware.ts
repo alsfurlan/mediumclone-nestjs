@@ -10,7 +10,6 @@ export class AuthMiddleware implements NestMiddleware {
   constructor(private readonly userService: UserService) {}
 
   async use(req: ExpressRequest, res: Response, next: NextFunction) {
-    console.log('authMiddleware: ', req.headers);
     const { authorization } = req.headers;
     if (!authorization) {
       req.user = null;
@@ -19,8 +18,6 @@ export class AuthMiddleware implements NestMiddleware {
     }
 
     const [, token] = authorization.split(' ');
-    console.log('token: ', token);
-
     try {
       const decode = verify(token, JWT_SECRET);
       const user = await this.userService.findById(decode.id);
