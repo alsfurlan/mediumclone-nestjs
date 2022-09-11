@@ -27,7 +27,8 @@ export class ArticleService {
   ): Promise<ArticlesResponseInterface> {
     const queryBuilder = getRepository(ArticleEntity)
       .createQueryBuilder('articles')
-      .leftJoinAndSelect('articles.author', 'author');
+      .leftJoinAndSelect('articles.author', 'author')
+      .leftJoinAndSelect('articles.userFavorites', 'userFavorites');
 
     if (query.tag) {
       queryBuilder.andWhere('articles.tagList LIKE :tag', {
@@ -42,6 +43,12 @@ export class ArticleService {
       queryBuilder.andWhere('articles.author.id = :id', { id: author.id });
     }
 
+    if (query.favorited) {
+      queryBuilder.andWhere('userFavorites.username = :username', {
+        username: query.favorited,
+      });
+    }
+
     queryBuilder.orderBy('articles.createdAt', 'DESC');
 
     const articlesCount = await queryBuilder.getCount();
@@ -53,7 +60,15 @@ export class ArticleService {
       queryBuilder.offset(query.offset);
     }
     const articles = await queryBuilder.getMany();
-    return { articles, articlesCount };
+    const articlesWithFavorited = articles.map((article) => {
+      const { userFavorites, ...articleProperties } = article;
+      return {
+        ...articleProperties,
+        favorited: !!userFavorites.find((user) => user.id === currentUserId),
+      };
+    });
+
+    return { articles: articlesWithFavorited, articlesCount };
   }
 
   async createArticle(
