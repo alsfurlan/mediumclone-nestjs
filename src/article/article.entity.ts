@@ -3,6 +3,7 @@ import {
   BeforeInsert,
   Column,
   Entity,
+  ManyToMany,
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
@@ -43,4 +44,7 @@ export class ArticleEntity {
 
   @ManyToOne(() => UserEntity, (user) => user.articles, { eager: true })
   author: UserEntity;
+
+  @ManyToMany(() => UserEntity, (user) => user.favorites)
+  userFavorites: UserEntity[];
 }

@@ -22,14 +22,14 @@ import { ArticlesResponseInterface } from './types/articlesResponse.interface';
 
 @Controller('articles')
 export class ArticleController {
-  constructor(private readonly articlesService: ArticleService) {}
+  constructor(private readonly articleService: ArticleService) {}
 
   @Get()
   async findAll(
     @User('id') currentUserId: number,
     @Query() query: any,
   ): Promise<ArticlesResponseInterface> {
-    return await this.articlesService.findAll(currentUserId, query);
+    return await this.articleService.findAll(currentUserId, query);
   }
 
   @Post()
@@ -39,11 +39,11 @@ export class ArticleController {
     @User() currentUser: UserEntity,
     @Body('article') createArticleDto: CreateArticleDto,
   ): Promise<ArticleResponseInterface> {
-    const article = await this.articlesService.createArticle(
+    const article = await this.articleService.createArticle(
       currentUser,
       createArticleDto,
     );
-    return this.articlesService.buildArticleResponse(article);
+    return this.articleService.buildArticleResponse(article);
   }
 
   @Get(':slug')
@@ -51,8 +51,8 @@ export class ArticleController {
   async findBySlug(
     @Param('slug') slug: string,
   ): Promise<ArticleResponseInterface> {
-    const article = await this.articlesService.findBySlug(slug);
-    return this.articlesService.buildArticleResponse(article);
+    const article = await this.articleService.findBySlug(slug);
+    return this.articleService.buildArticleResponse(article);
   }
 
   @Delete(':slug')
@@ -61,7 +61,7 @@ export class ArticleController {
     @User('id') currentUserId: number,
     @Param('slug') slug: string,
   ) {
-    return await this.articlesService.deleteArticle(currentUserId, slug);
+    return await this.articleService.deleteArticle(currentUserId, slug);
   }
 
   @Put(':slug')
@@ -72,12 +72,12 @@ export class ArticleController {
     @Param('slug') slug: string,
     @Body('article') updateArticleDto: UpdateArticleDto,
   ) {
-    const article = await this.articlesService.updateArticle(
+    const article = await this.articleService.updateArticle(
       slug,
       updateArticleDto,
       currentUserId,
     );
-    return this.articlesService.buildArticleResponse(article);
+    return this.articleService.buildArticleResponse(article);
   }
 
   @Post(':slug/favorite')
@@ -86,10 +86,23 @@ export class ArticleController {
     @Param('slug') slug: string,
     @User('id') currentUserId: number,
   ): Promise<ArticleResponseInterface> {
-    const article = await this.articlesService.addArticlesToFavorites(
+    const article = await this.articleService.addArticlesToFavorites(
       slug,
       currentUserId,
     );
-    return this.articlesService.buildArticleResponse(article);
+    return this.articleService.buildArticleResponse(article);
+  }
+
+  @Delete(':slug/favorite')
+  @UseGuards(AuthGuard)
+  async deleteArticleFromFavorites(
+    @Param('slug') slug,
+    @User('id') currentUserId,
+  ) {
+    const article = await this.articleService.deleteArticleFromFavorites(
+      slug,
+      currentUserId,
+    );
+    return this.articleService.buildArticleResponse(article);
   }
 }
